@@ -7,11 +7,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "db:generate": "node ./scripts/run-prisma.mjs generate",
+    "db:migrate": "node ./scripts/run-prisma.mjs migrate dev --name registry_update",
+    "db:seed": "node ./scripts/run-prisma.mjs db seed",
+    "db:check": "node ./scripts/db-check.mjs",
+    "db:smoke": "node ./scripts/verify-db-flow.mjs",
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "verify": "pnpm lint && pnpm typecheck && pnpm build"
+    "verify": "pnpm lint && pnpm typecheck && pnpm db:check && pnpm db:smoke && pnpm build"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "latest",
+    "@prisma/client": "latest",
     "@registry/api-contracts": "workspace:*",
     "@registry/auth": "workspace:*",
     "@registry/config": "workspace:*",
@@ -19,11 +26,14 @@
     "@registry/ui": "workspace:*",
     "@registry/validation": "workspace:*",
     "next": "latest",
+    "pg": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "server-only": "latest"
   },
   "devDependencies": {
     "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "@types/react-dom": "latest",
+    "prisma": "latest"
   }
 }

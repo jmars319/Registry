@@ -59,7 +59,7 @@ export function AppShell({ children }: PropsWithChildren) {
             <p className="eyebrow">Operational Source Of Truth</p>
             <h2>Admin workspace</h2>
           </div>
-          <div className="topbar__badge">Initial scaffold</div>
+          <div className="topbar__badge">Persistence-backed slice</div>
         </header>
 
         <main className="content">{children}</main>

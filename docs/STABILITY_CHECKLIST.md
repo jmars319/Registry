@@ -1,11 +1,16 @@
 # Stability Checklist
 
-- [ ] `.env.example` matches the active scaffold requirements
-- [ ] `pnpm check:env` passes
+- [ ] `.env.example` matches the actual runtime requirements
+- [ ] repo root `.env` is present and `DATABASE_URL` is valid
+- [ ] `pnpm check:env` passes, including Postgres connectivity
 - [ ] `pnpm check:packages` confirms the expected workspace layout
+- [ ] `pnpm --filter @registry/webapp db:migrate` applies cleanly
+- [ ] `pnpm --filter @registry/webapp db:seed` runs cleanly
+- [ ] `pnpm --filter @registry/webapp db:smoke` passes against the configured database
 - [ ] `pnpm lint` passes across apps, packages, and scripts
 - [ ] `pnpm typecheck` passes across apps and packages
-- [ ] `pnpm verify:web` passes for the web scaffold
+- [ ] `pnpm verify:web` passes for the persistence-backed web slice
 - [ ] `pnpm verify:desktop` still passes for the placeholder desktop shell
 - [ ] `pnpm verify:mobile` still passes for the placeholder mobile shell
-- [ ] the monorepo layout stays boring, explicit, and easy to verify
+- [ ] creating a customer, asset, and assignment works end to end in the web app
+- [ ] active assignments cannot double-occupy the same asset

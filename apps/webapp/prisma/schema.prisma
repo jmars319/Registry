@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum AssetStatus {
+  AVAILABLE
+  ASSIGNED
+  MAINTENANCE
+  ARCHIVED
+}
+
+enum AssetCategory {
+  UNIT
+  VEHICLE
+  EQUIPMENT
+  OTHER
+}
+
+enum AssignmentStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum BillingCadence {
+  DAILY
+  WEEKLY
+  MONTHLY
+  CUSTOM
+}
+
+model Organization {
+  id          String             @id @default(cuid())
+  name        String
+  slug        String             @unique
+  status      OrganizationStatus @default(ACTIVE)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  customers   Customer[]
+  assets      Asset[]
+  assignments Assignment[]
+}
+
+model Customer {
+  id                String         @id @default(cuid())
+  organizationId    String
+  name              String
+  companyName       String?
+  email             String?
+  phone             String?
+  billingStreet1    String?
+  billingStreet2    String?
+  billingCity       String?
+  billingState      String?
+  billingPostalCode String?
+  billingCountry    String         @default("US")
+  notes             String?
+  status            CustomerStatus @default(ACTIVE)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  organization      Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignments       Assignment[]
+
+  @@index([organizationId, status])
+}
+
+model Asset {
+  id              String       @id @default(cuid())
+  organizationId  String
+  assetCode       String
+  name            String
+  category        AssetCategory
+  status          AssetStatus  @default(AVAILABLE)
+  currentLocation String?
+  notes           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignments     Assignment[]
+
+  @@unique([organizationId, assetCode])
+  @@index([organizationId, status])
+}
+
+model Assignment {
+  id             String           @id @default(cuid())
+  organizationId String
+  customerId     String
+  assetId        String
+  startDate      DateTime         @db.Date
+  endDate        DateTime?        @db.Date
+  billingCadence BillingCadence
+  rateInCents    Int
+  status         AssignmentStatus @default(DRAFT)
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer       Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  asset          Asset            @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, status])
+  @@index([customerId, status])
+  @@index([assetId, status])
+}
