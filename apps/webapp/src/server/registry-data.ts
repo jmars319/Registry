@@ -391,7 +391,7 @@ export async function getDefaultOrganization(): Promise<Organization> {
     }));
 
   if (!organization) {
-    throw new Error("No organization found. Run the webapp seed step before using Registry.");
+    throw new Error("No organization found. Run the webapp seed step before using tenra Registry.");
   }
 
   return serializeOrganization(organization);

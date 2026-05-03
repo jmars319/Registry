@@ -25,8 +25,8 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: `${REGISTRY_APP_NAME} | JAMARQ`,
-  description: "Registry is a JAMARQ operational system for customers, assets, assignments, and invoicing."
+  title: `${REGISTRY_APP_NAME} | tenra`,
+  description: "tenra Registry is an operational system for customers, assets, assignments, and invoicing."
 };
 
 export default function RootLayout({ children }: PropsWithChildren) {

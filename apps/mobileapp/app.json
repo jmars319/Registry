@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Registry",
-    "slug": "registry",
+    "name": "tenra Registry",
+    "slug": "tenra-registry",
     "version": "0.1.0",
     "orientation": "portrait",
     "platforms": ["ios", "android"],

@@ -1,8 +1,8 @@
 [package]
 name = "registry-desktopapp"
 version = "0.1.0"
-description = "Registry desktop shell"
-authors = ["JAMARQ"]
+description = "tenra Registry desktop shell"
+authors = ["tenra"]
 edition = "2021"
 
 [build-dependencies]

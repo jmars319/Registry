@@ -36,7 +36,7 @@ const packageFiles = expectedDirectories
 
 let hasFailure = false;
 
-console.log("Registry workspace structure check");
+console.log("tenra Registry workspace structure check");
 
 for (const directory of expectedDirectories) {
   try {

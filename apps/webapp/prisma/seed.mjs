@@ -12,7 +12,7 @@ const prisma = new PrismaClient({
     connectionString: databaseUrl
   })
 });
-const defaultOrganizationName = "Registry Operations";
+const defaultOrganizationName = "tenra Registry Operations";
 const defaultOrganizationSlug = "registry-ops";
 
 function dateOnly(value) {

@@ -193,7 +193,7 @@ try {
     "Asset should return to available after the final active assignment is completed."
   );
 
-  console.log("Registry DB lifecycle flow passed.");
+  console.log("tenra Registry DB lifecycle flow passed.");
 } finally {
   if (assetId) {
     await db.assignment.deleteMany({

@@ -3,5 +3,5 @@
 fn main() {
     tauri::Builder::default()
         .run(tauri::generate_context!())
-        .expect("error while running Registry desktop shell");
+        .expect("error while running tenra Registry desktop shell");
 }

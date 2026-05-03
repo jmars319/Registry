@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Registry",
+  "productName": "tenra Registry",
   "version": "0.1.0",
-  "identifier": "com.jamarq.registry",
+  "identifier": "co.tenra.registry",
   "build": {
     "beforeDevCommand": "pnpm dev:web",
     "beforeBuildCommand": "pnpm build:web",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Registry",
+        "title": "tenra Registry",
         "width": 1280,
         "height": 860,
         "minWidth": 1100,

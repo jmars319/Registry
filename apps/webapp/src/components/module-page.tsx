@@ -29,7 +29,7 @@ export function ModulePage({ title, summary, statusNote }: ModulePageProps) {
       <div className="panel-card panel-card--soft">
         <h2>Working principle</h2>
         <p>
-          Registry should stay general enough for multiple operational businesses while remaining grounded in customer,
+          tenra Registry should stay general enough for multiple operational businesses while remaining grounded in customer,
           asset, assignment, and invoice flows.
         </p>
         <Link className="inline-link" href="/">

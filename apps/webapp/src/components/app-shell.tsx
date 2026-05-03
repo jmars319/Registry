@@ -17,8 +17,8 @@ export function AppShell({ children }: PropsWithChildren) {
     <div className="shell">
       <aside className="sidebar">
         <div className="sidebar__brand">
-          <p className="eyebrow">JAMARQ</p>
-          <h1>Registry</h1>
+          <p className="eyebrow">tenra</p>
+          <h1>tenra Registry</h1>
           <p className="sidebar__copy">
             Stable operational tracking for customers, assets, assignments, and invoices.
           </p>
