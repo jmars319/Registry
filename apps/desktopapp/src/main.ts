@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, Menu, shell, type MenuItemConstructorOptions } from "electron";
 import { spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import http from "node:http";
@@ -17,6 +17,7 @@ const nextBuildIdPath = path.resolve(webappDir, ".next/BUILD_ID");
 let mainWindow: BrowserWindow | undefined;
 let serverProcess: ChildProcess | undefined;
 let serverLog = "";
+let registryBaseUrl: string | undefined;
 
 function appendServerLog(chunk: Buffer | string) {
   serverLog = `${serverLog}${chunk.toString()}`.slice(-12_000);
@@ -214,6 +215,10 @@ function assertRuntimeReady() {
 }
 
 async function startRegistryServer() {
+  if (serverProcess && serverProcess.exitCode === null && registryBaseUrl) {
+    return registryBaseUrl;
+  }
+
   assertRuntimeReady();
 
   const pnpmCommand = resolvePnpmCommand();
@@ -240,7 +245,65 @@ async function startRegistryServer() {
   });
 
   await waitForRegistry(baseUrl);
+  registryBaseUrl = baseUrl;
   return baseUrl;
+}
+
+function buildApplicationMenu() {
+  const template: MenuItemConstructorOptions[] = [
+    {
+      label: appName,
+      submenu: [
+        { role: "about" },
+        { type: "separator" },
+        {
+          label: "Settings...",
+          accelerator: "CommandOrControl+,",
+          click: () => {
+            if (!registryBaseUrl) {
+              mainWindow?.show();
+              mainWindow?.focus();
+              return;
+            }
+
+            void mainWindow?.loadURL(`${registryBaseUrl}/settings`);
+            mainWindow?.show();
+            mainWindow?.focus();
+          },
+        },
+        {
+          label: "Close Window",
+          accelerator: "CommandOrControl+W",
+          click: () => {
+            BrowserWindow.getFocusedWindow()?.close();
+          },
+        },
+        {
+          label: "Quit",
+          accelerator: "CommandOrControl+Q",
+          click: () => app.quit(),
+        },
+      ],
+    },
+    {
+      label: "Edit",
+      submenu: [
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
+        { role: "selectAll" },
+      ],
+    },
+    {
+      label: "Window",
+      submenu: [{ role: "minimize" }, { role: "zoom" }],
+    },
+  ];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 async function createMainWindow() {
@@ -260,6 +323,10 @@ async function createMainWindow() {
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url);
     return { action: "deny" };
+  });
+
+  mainWindow.once("closed", () => {
+    mainWindow = undefined;
   });
 
   await showStatus(appName, "Starting the local Registry web app and checking the Postgres-backed dashboard.");
@@ -283,11 +350,13 @@ function stopRegistryServer() {
   if (serverProcess && serverProcess.exitCode === null) {
     serverProcess.kill("SIGTERM");
   }
+  registryBaseUrl = undefined;
 }
 
 app.setName(appName);
 
 app.whenReady().then(() => {
+  buildApplicationMenu();
   void createMainWindow();
 
   app.on("activate", () => {
@@ -298,7 +367,9 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
-  app.quit();
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
 });
 
 app.on("before-quit", () => {
