@@ -93,24 +93,10 @@ const checks = [
     }
   },
   {
-    label: "Rust toolchain",
+    label: "Electron builder",
     required: false,
     test() {
-      return runCommand("rustc", ["--version"]);
-    }
-  },
-  {
-    label: "Workspace Tauri CLI",
-    required: false,
-    test() {
-      return runCommand("pnpm", ["--filter", "@registry/desktopapp", "exec", "tauri", "--version"]);
-    }
-  },
-  {
-    label: "Xcode app",
-    required: false,
-    test() {
-      return runCommand("xcodebuild", ["-version"]);
+      return runCommand("pnpm", ["--filter", "@registry/desktopapp", "exec", "electron-builder", "--version"]);
     }
   },
   {
@@ -158,7 +144,7 @@ if (!hasEnvFile) {
   console.log("FAIL missing repo root .env file");
 }
 
-console.log("Note: native desktop prerequisites are optional at this scaffold stage.");
+console.log("Note: desktop packaging tools are optional unless you are building the Applications launcher.");
 
 if (hasFailure) {
   process.exitCode = 1;

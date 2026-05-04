@@ -9,6 +9,7 @@
 5. Run `pnpm --filter @registry/webapp db:migrate`.
 6. Run `pnpm --filter @registry/webapp db:seed`.
 7. Run `pnpm dev:web`.
+8. Run `pnpm install:desktop` when you want the local Applications launcher.
 
 `bootstrap` installs dependencies, validates the environment, checks the workspace shape, and generates the Prisma client.
 
@@ -25,11 +26,11 @@ The current slice assumes one seeded default organization in the UI. Do not buil
 ## Run Apps
 
 - Web: `pnpm dev:web`
-- Desktop: `pnpm dev:desktop`
+- Desktop: `pnpm install:desktop`, then open `/Applications/tenra Registry.app`
 - Mobile: `pnpm dev:mobile`
-- Web + desktop shell: `pnpm dev:both`
+- Web + desktop launcher: `pnpm dev:both`
 
-The web app is the only active full-stack surface right now.
+The web app is the source of the active full-stack workflow. The desktop app launches that production Next app locally, so it still depends on the repo checkout, pnpm, the built `.next` output, `DATABASE_URL`, and Postgres.
 
 ## Verify The Repo
 
@@ -38,7 +39,7 @@ The web app is the only active full-stack surface right now.
 - `pnpm lint`: run ESLint across the monorepo
 - `pnpm typecheck`: run TypeScript across the monorepo
 - `pnpm verify:web`: lint, typecheck, check Prisma/database state, run the assignment lifecycle smoke flow, and build the web app
-- `pnpm verify:desktop`: lint, typecheck, and build the desktop placeholder shell
+- `pnpm verify:desktop`: lint, typecheck, and build the desktop launcher
 - `pnpm verify:mobile`: lint, typecheck, and export the mobile placeholder shell
 - `pnpm verify:all`: run every app verification sequence
 - `pnpm doctor`: run the full repository health sequence
@@ -48,7 +49,7 @@ The web app is the only active full-stack surface right now.
 1. Extend the shared packages first if the new behavior changes domain language or contracts.
 2. Prefer keeping the web app full-stack until the current vertical slice outgrows that shape.
 3. Add a separate backend app only when the current app boundary becomes a real constraint.
-4. Keep desktop and mobile thin until they have clear, non-placeholder workflows to support.
+4. Keep mobile thin until it has a clear, non-placeholder workflow to support.
 5. Update the docs and repo map whenever the operational path changes.
 
 ## Current Lifecycle Rules

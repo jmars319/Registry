@@ -32,7 +32,7 @@ export default [
     files: ["**/*.{ts,tsx}"]
   })),
   {
-    files: ["**/*.{ts,tsx}"],
+    files: ["**/*.tsx"],
     languageOptions: {
       globals: {
         ...globals.browser
@@ -50,6 +50,14 @@ export default [
     settings: {
       react: {
         version: "detect"
+      }
+    }
+  },
+  {
+    files: ["apps/desktopapp/**/*.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.node
       }
     }
   },

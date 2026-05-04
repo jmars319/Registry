@@ -10,7 +10,8 @@
 - [ ] `pnpm lint` passes across apps, packages, and scripts
 - [ ] `pnpm typecheck` passes across apps and packages
 - [ ] `pnpm verify:web` passes for the persistence-backed web slice
-- [ ] `pnpm verify:desktop` still passes for the placeholder desktop shell
+- [ ] `pnpm verify:desktop` still passes for the desktop launcher
+- [ ] `pnpm install:desktop` installs one `/Applications/tenra Registry.app` copy
 - [ ] `pnpm verify:mobile` still passes for the placeholder mobile shell
 - [ ] creating a customer, asset, and assignment works end to end in the web app
 - [ ] active assignments cannot double-occupy the same asset

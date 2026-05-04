@@ -1,35 +1,23 @@
-import { spawnSync } from "node:child_process";
+import esbuild from "esbuild";
+import { mkdir } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const cwd = new URL("..", import.meta.url);
+const desktopDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = path.resolve(desktopDir, "../..");
 
-function hasCommand(command, args) {
-  const result = spawnSync(command, args, {
-    cwd,
-    encoding: "utf8",
-    stdio: "pipe"
-  });
+await mkdir(path.resolve(desktopDir, "dist"), { recursive: true });
 
-  return result.status === 0;
-}
-
-function hasNativeDesktopPrerequisites() {
-  return (
-    hasCommand("pnpm", ["exec", "tauri", "--version"]) &&
-    hasCommand("rustc", ["--version"]) &&
-    hasCommand("xcodebuild", ["-version"])
-  );
-}
-
-const hasDesktopSupport = hasNativeDesktopPrerequisites();
-const command = hasDesktopSupport ? ["pnpm", ["build:tauri"]] : ["pnpm", ["build:web"]];
-
-if (!hasDesktopSupport) {
-  console.log("Native desktop prerequisites are incomplete. Building the Vite shell only.");
-}
-
-const result = spawnSync(command[0], command[1], {
-  cwd,
-  stdio: "inherit"
+await esbuild.build({
+  entryPoints: [path.resolve(desktopDir, "src/main.ts")],
+  outfile: path.resolve(desktopDir, "dist/main.cjs"),
+  bundle: true,
+  platform: "node",
+  format: "cjs",
+  target: "node22",
+  external: ["electron", "electron/*"],
+  define: {
+    __REGISTRY_REPO_ROOT__: JSON.stringify(repoRoot),
+  },
+  sourcemap: true,
 });
-
-process.exit(result.status ?? 1);

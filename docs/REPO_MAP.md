@@ -17,7 +17,7 @@
 - `apps/webapp/src/server`: Prisma client setup, root env loading, and centralized operational data and lifecycle mutations
 - `apps/webapp/src/components/forms`: create forms powered by server actions
 - `apps/webapp/src/components/registry`: small admin UI helpers for the active slice, including assignment lifecycle actions
-- `apps/desktopapp`: placeholder desktop shell using Vite, React, and Tauri
+- `apps/desktopapp`: Electron desktop launcher that starts the production Next web app locally
 - `apps/mobileapp`: placeholder Expo mobile shell
 
 ## Packages
