@@ -59,7 +59,7 @@ pnpm doctor
 - pnpm `10+`
 - existing local Postgres instance via `DATABASE_URL`
 - Prisma 7 with the Postgres driver adapter
-- local desktop launcher depends on this repo path, pnpm, the built Next app, and the same Postgres database
+- local desktop launcher loads repo-root `.env` / `.env.local`, defaults to `postgresql:///registry?schema=public` when `DATABASE_URL` is not set, and depends on this repo path, pnpm, the built Next app, and the same local Postgres database
 - strict TypeScript across the monorepo
 
 ## Notes

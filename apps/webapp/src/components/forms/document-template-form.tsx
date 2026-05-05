@@ -113,7 +113,6 @@ export function DocumentTemplateForm() {
   useEffect(() => {
     if (state.status === "success") {
       formRef.current?.reset();
-      setPresetId(defaultTemplatePreset.id);
     }
   }, [state.status]);
 

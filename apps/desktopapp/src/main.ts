@@ -10,6 +10,7 @@ declare const __REGISTRY_REPO_ROOT__: string;
 const appName = "tenra Registry";
 const defaultPort = 3487;
 const startupTimeoutMs = 30_000;
+const defaultDatabaseUrl = "postgresql:///registry?schema=public";
 const repoRoot = process.env.TENRA_REGISTRY_REPO_ROOT || __REGISTRY_REPO_ROOT__;
 const webappDir = path.resolve(repoRoot, "apps/webapp");
 const nextBuildIdPath = path.resolve(webappDir, ".next/BUILD_ID");
@@ -173,6 +174,49 @@ function getLaunchEnv(extraPaths: string[] = []) {
   return env;
 }
 
+function parseEnvFile(filePath: string) {
+  if (!fs.existsSync(filePath)) {
+    return;
+  }
+
+  const loadEnvFile = (process as typeof process & { loadEnvFile?: (path: string) => void }).loadEnvFile;
+  if (typeof loadEnvFile === "function") {
+    loadEnvFile(filePath);
+    return;
+  }
+
+  const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) {
+      continue;
+    }
+
+    const separator = trimmed.indexOf("=");
+    if (separator <= 0) {
+      continue;
+    }
+
+    const key = trimmed.slice(0, separator).trim();
+    const rawValue = trimmed.slice(separator + 1).trim();
+    if (process.env[key]) {
+      continue;
+    }
+
+    process.env[key] = rawValue.replace(/^['"]|['"]$/g, "");
+  }
+}
+
+function prepareLocalEnvironment() {
+  parseEnvFile(path.resolve(repoRoot, ".env"));
+  parseEnvFile(path.resolve(repoRoot, ".env.local"));
+
+  if (!process.env.DATABASE_URL?.trim()) {
+    process.env.DATABASE_URL = defaultDatabaseUrl;
+    logDesktop(`DATABASE_URL was not set; using ${defaultDatabaseUrl}`);
+  }
+}
+
 async function findAvailablePort(startPort: number) {
   for (let port = startPort; port < startPort + 60; port += 1) {
     const available = await new Promise<boolean>((resolve) => {
@@ -251,6 +295,7 @@ async function startRegistryServer() {
   }
 
   assertRuntimeReady();
+  prepareLocalEnvironment();
 
   const pnpmCommand = resolvePnpmCommand();
   const port = await findAvailablePort(defaultPort);
@@ -372,7 +417,7 @@ async function createMainWindow() {
     const message = error instanceof Error ? error.message : String(error);
     await showStatus(
       "Registry could not start",
-      `${message} Check Postgres, DATABASE_URL, migrations, and the local repo path.`,
+      `${message} Registry loads .env/.env.local and defaults to ${defaultDatabaseUrl}; check that local Postgres is running, the registry database exists, migrations are applied, and the local repo path is correct.`,
       serverLog,
     );
   }
