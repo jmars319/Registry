@@ -2,11 +2,11 @@
 
 tenra Registry is a stable operating desk for portable storage-container rentals. It tracks organizations, customers, container units, rental site logistics, receivable entries, document templates, and practical reports.
 
-This repository is now past the pure scaffold stage. The web app is a real full-stack vertical slice backed by Postgres and Prisma. The desktop app is a local macOS launcher for that real web workflow. Mobile remains a light placeholder while the production workflow stays focused on web and desktop.
+This repository is now past the pure scaffold stage. Registry is desktop-first: the macOS app is the user-facing operating desk. It launches the real local Next/Postgres workflow, while the web app remains the shared runtime/admin surface and mobile remains a light placeholder.
 
 ## What Works Now
 
-- single-organization operational workflow in the web app
+- single-organization operational workflow through the desktop-launched local app
 - seeded default organization
 - customer list, create, detail, rental history, and account-balance flow
 - container unit list, create, and detail flow with size, type, condition, home yard, and current location fields
@@ -32,9 +32,9 @@ available container -> create active rental -> post charges/payments -> complete
 
 ## Monorepo Layout
 
-- `apps/webapp`: active Next.js full-stack surface with Prisma, server actions, and the first operational slice
-- `apps/desktopapp`: Electron desktop launcher for the production Next web app
-- `apps/mobileapp`: placeholder Expo + React Native shell
+- `apps/desktopapp`: primary Electron desktop launcher for the production local Next/Postgres workflow
+- `apps/webapp`: secondary Next.js full-stack runtime with Prisma, server actions, and the first operational slice
+- `apps/mobileapp`: third-surface placeholder Expo + React Native shell
 - `packages/*`: shared domain, contracts, validation, auth, UI tokens, and config
 - `scripts`: root environment and health scripts
 - `docs`: repo documentation

@@ -11,14 +11,14 @@
 
 ## Apps
 
-- `apps/webapp`: active Next.js full-stack app
+- `apps/desktopapp`: primary Electron desktop launcher that starts the production Next web app locally
+- `apps/webapp`: secondary Next.js full-stack runtime/admin app
 - `apps/webapp/app`: route tree for dashboard, customers, units, rentals, receivables, rent runs, documents, imports, reports, and settings
 - `apps/webapp/prisma`: Prisma schema, migrations, and seed script
 - `apps/webapp/src/server`: Prisma client setup, root env loading, and centralized operational data and lifecycle mutations
 - `apps/webapp/src/components/forms`: create forms powered by server actions
 - `apps/webapp/src/components/registry`: small admin UI helpers for the active slice, including assignment lifecycle actions
-- `apps/desktopapp`: Electron desktop launcher that starts the production Next web app locally
-- `apps/mobileapp`: placeholder Expo mobile shell
+- `apps/mobileapp`: third-surface placeholder Expo mobile shell
 
 ## Packages
 

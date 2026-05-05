@@ -30,7 +30,7 @@ The current slice assumes one seeded default organization in the UI. Do not buil
 - Mobile: `pnpm dev:mobile`
 - Web + desktop launcher: `pnpm dev:both`
 
-The web app is the source of the active full-stack workflow. The desktop app launches that production Next app locally, so it still depends on the repo checkout, pnpm, the built `.next` output, `DATABASE_URL`, and Postgres.
+The desktop app is the primary user-facing surface. It launches the production Next app locally, so it still depends on the repo checkout, pnpm, the built `.next` output, `DATABASE_URL`, and Postgres. The web app remains the secondary runtime/admin surface.
 
 ## Verify The Repo
 
@@ -47,9 +47,9 @@ The web app is the source of the active full-stack workflow. The desktop app lau
 ## Add More Functionality Later
 
 1. Extend the shared packages first if the new behavior changes domain language or contracts.
-2. Prefer keeping the web app full-stack until the current vertical slice outgrows that shape.
+2. Prefer keeping the local web runtime full-stack until the current vertical slice outgrows that shape.
 3. Add a separate backend app only when the current app boundary becomes a real constraint.
-4. Keep mobile thin until it has a clear, non-placeholder workflow to support.
+4. Keep mobile third and thin until it has a clear, non-placeholder workflow to support.
 5. Update the docs and repo map whenever the operational path changes.
 
 ## Current Lifecycle Rules
