@@ -26,7 +26,8 @@ The current slice assumes one seeded default organization in the UI. Do not buil
 ## Run Apps
 
 - Web: `pnpm dev:web`
-- Desktop: `pnpm install:desktop`, then open `/Applications/tenra Registry.app`
+- Desktop rebuild/install: `pnpm install:desktop`
+- Desktop launch: `pnpm launch:desktop`
 - Mobile: `pnpm dev:mobile`
 - Web + desktop launcher: `pnpm dev:both`
 

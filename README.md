@@ -50,6 +50,7 @@ pnpm --filter @registry/webapp db:migrate
 pnpm --filter @registry/webapp db:seed
 pnpm dev:web
 pnpm install:desktop
+pnpm launch:desktop
 pnpm verify:web
 pnpm doctor
 ```
@@ -71,6 +72,7 @@ pnpm doctor
 - Documents now create generated records, track print/email actions, and generate simple downloadable PDFs. Direct email sending and immutable delivery history are still future work.
 - Imports now support dry-run validation, execution, batch audit records, and rollback for newly imported records. A real source export should still be reviewed before the field mapping is considered final.
 - Auth provider integration and a separate backend service are intentionally deferred.
+- `pnpm install:desktop` rebuilds and installs the local launcher without opening it. Use `pnpm launch:desktop` when you want to open the installed app.
 - The desktop app is a local launcher, not a standalone distributable yet. Distribution should later bundle or provision the server/database path instead of depending on this repo checkout.
 
 See [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) and [docs/REPO_MAP.md](docs/REPO_MAP.md) for the working details.
