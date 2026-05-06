@@ -6,21 +6,25 @@ Registry should interoperate with the rest of the tenra suite through explicit e
 
 Purpose: move posted financial activity into a bookkeeping system.
 
-Minimum record:
+Canonical envelope: `tenra-registry.ledger-export.v1`.
 
 ```json
 {
-  "schema": "tenra.registry.ledger-entry.v1",
-  "customerId": "customer-id",
-  "customerName": "Customer name",
-  "sourceEntryId": "receivable-entry-id",
-  "type": "charge | payment | credit | adjustment | deposit | refund",
-  "effectiveDate": "YYYY-MM-DD",
-  "description": "Readable ledger description",
-  "amountInCents": 0,
-  "assignmentId": "optional-rental-id",
-  "assetCode": "optional-unit-code",
-  "reference": "optional-reference"
+  "schema": "tenra-registry.ledger-export.v1",
+  "exportedAt": "2026-05-06T17:30:00.000Z",
+  "organizationId": "organization-id",
+  "sourceApp": "registry",
+  "rows": [
+    {
+      "externalId": "receivable-entry-id",
+      "customerCode": "customer-id",
+      "customerName": "Customer name",
+      "entryType": "charge",
+      "effectiveDate": "YYYY-MM-DD",
+      "description": "Readable ledger description",
+      "amountMinor": 10000
+    }
+  ]
 }
 ```
 
@@ -53,18 +57,19 @@ Minimum record:
 
 Purpose: create documents, notices, or content from approved operational context.
 
-Minimum record:
+Canonical envelope: `tenra-registry.assembly-document-request.v1`.
 
 ```json
 {
-  "schema": "tenra.registry.assembly-brief.v1",
-  "requestKind": "document | notice | internal-note | customer-message",
+  "schema": "tenra-registry.assembly-document-request.v1",
+  "exportedAt": "2026-05-06T17:30:00.000Z",
+  "sourceApp": "registry",
+  "organizationId": "organization-id",
   "customerId": "customer-id",
-  "customerName": "Customer name",
-  "assignmentId": "optional-rental-id",
-  "assetCode": "optional-unit-code",
-  "context": "Approved facts to use",
-  "constraints": ["Do not send automatically", "Keep office review required"]
+  "documentType": "notice",
+  "title": "Customer notice",
+  "contextMarkdown": "Approved facts to use",
+  "desiredOutput": "notice"
 }
 ```
 

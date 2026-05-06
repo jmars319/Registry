@@ -215,3 +215,39 @@ export interface UpdateGeneratedDocumentStatusRequest {
   documentId: EntityId;
   status: Extract<GeneratedDocument["status"], "printed" | "emailed">;
 }
+
+export interface RegistryLedgerExportRow {
+  externalId: EntityId;
+  customerCode: EntityId;
+  customerName: string;
+  rentalCode?: EntityId | undefined;
+  unitCode?: string | undefined;
+  entryType: ReceivableEntry["type"];
+  effectiveDate: ReceivableEntry["effectiveDate"];
+  description: ReceivableEntry["description"];
+  amountMinor: ReceivableEntry["amountInCents"];
+  paymentMethod?: ReceivableEntry["paymentMethod"] | undefined;
+  reference?: ReceivableEntry["reference"] | undefined;
+  notes?: ReceivableEntry["notes"] | undefined;
+}
+
+export interface RegistryLedgerExport {
+  schema: "tenra-registry.ledger-export.v1";
+  exportedAt: string;
+  organizationId: EntityId;
+  sourceApp: "registry";
+  rows: RegistryLedgerExportRow[];
+}
+
+export interface RegistryAssemblyDocumentRequest {
+  schema: "tenra-registry.assembly-document-request.v1";
+  exportedAt: string;
+  sourceApp: "registry";
+  organizationId: EntityId;
+  customerId: EntityId;
+  assignmentId?: EntityId | undefined;
+  documentType: GeneratedDocument["type"];
+  title: string;
+  contextMarkdown: string;
+  desiredOutput: "letter" | "email" | "notice" | "agreement" | "statement";
+}

@@ -183,3 +183,39 @@ export const updateGeneratedDocumentStatusSchema = z.object({
   documentId: entityIdSchema,
   status: z.enum(["printed", "emailed"])
 });
+
+export const registryLedgerExportRowSchema = z.object({
+  externalId: entityIdSchema,
+  customerCode: entityIdSchema,
+  customerName: z.string().trim().min(1).max(160),
+  rentalCode: entityIdSchema.optional(),
+  unitCode: z.string().trim().max(120).optional(),
+  entryType: z.enum(receivableEntryTypes),
+  effectiveDate: dateSchema,
+  description: z.string().trim().min(1).max(500),
+  amountMinor: z.number().int().refine((value) => value !== 0, "Amount cannot be zero."),
+  paymentMethod: z.string().trim().max(120).optional(),
+  reference: z.string().trim().max(120).optional(),
+  notes: z.string().trim().max(1000).optional()
+});
+
+export const registryLedgerExportSchema = z.object({
+  schema: z.literal("tenra-registry.ledger-export.v1"),
+  exportedAt: z.string().datetime({ offset: true }),
+  organizationId: entityIdSchema,
+  sourceApp: z.literal("registry"),
+  rows: z.array(registryLedgerExportRowSchema).min(1)
+});
+
+export const registryAssemblyDocumentRequestSchema = z.object({
+  schema: z.literal("tenra-registry.assembly-document-request.v1"),
+  exportedAt: z.string().datetime({ offset: true }),
+  sourceApp: z.literal("registry"),
+  organizationId: entityIdSchema,
+  customerId: entityIdSchema,
+  assignmentId: entityIdSchema.optional(),
+  documentType: z.enum(documentTemplateTypes),
+  title: z.string().trim().min(1).max(140),
+  contextMarkdown: z.string().trim().min(1).max(10000),
+  desiredOutput: z.enum(["letter", "email", "notice", "agreement", "statement"])
+});
