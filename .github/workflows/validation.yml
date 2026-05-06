@@ -21,7 +21,7 @@ jobs:
       - name: Validate handoff fixtures
         run: pnpm run verify:handoffs
       - name: Create CI env file
-        run: touch .env
+        run: echo "DATABASE_URL=postgresql://registry:registry@localhost:5432/registry" > .env
       - name: Generate Prisma Client
         run: pnpm --filter @registry/webapp db:generate
       - name: Run typecheck
