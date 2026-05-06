@@ -1,4 +1,5 @@
 import { getReceivableEntryTypeLabel } from "@registry/domain";
+import { canAccess } from "@registry/auth";
 import Link from "next/link";
 import { ReceivableEntryForm } from "../../src/components/forms/receivable-entry-form";
 import {
@@ -23,6 +24,10 @@ export default async function ReceivablesPage() {
   ]);
   const openBalanceInCents = customers.reduce((total, customer) => total + customer.balanceInCents, 0);
   const pastDueInCents = customers.reduce((total, customer) => total + customer.pastDueInCents, 0);
+  const handoffRole = "manager";
+  const canExportLedger = canAccess(handoffRole, "receivables:read");
+  const canRequestAssemblyDocument = canAccess(handoffRole, "documents:write");
+  const assemblyCustomer = customers.find((customer) => customer.pastDueInCents > 0) ?? customers[0];
 
   return (
     <section className="stack">
@@ -67,6 +72,34 @@ export default async function ReceivablesPage() {
               Charges, deposits, adjustments, and refunds increase the balance. Payments and credits reduce it. Entries
               are posted as ledger records so account history stays inspectable.
             </p>
+          </article>
+          <article className="panel-card panel-card--soft">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Authenticated handoffs</p>
+                <h2>Suite exports</h2>
+              </div>
+              <span className="pill">manager role</span>
+            </div>
+            <p>
+              Manager access can download explicit handoff JSON for downstream apps. Ledger receives posted receivable
+              rows; Assembly receives a document-request packet with customer, balance, rental, and recent-entry context.
+            </p>
+            <div className="header-actions">
+              {canExportLedger ? (
+                <Link className="button-secondary button-link" href="/api/handoffs/ledger-export">
+                  Ledger JSON
+                </Link>
+              ) : null}
+              {canRequestAssemblyDocument && assemblyCustomer ? (
+                <Link
+                  className="button-secondary button-link"
+                  href={`/api/handoffs/assembly-document-request?customerId=${assemblyCustomer.id}`}
+                >
+                  Assembly request
+                </Link>
+              ) : null}
+            </div>
           </article>
         </div>
 

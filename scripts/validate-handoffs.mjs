@@ -20,6 +20,12 @@ if (files.length === 0) {
   throw new Error("No handoff fixtures found.");
 }
 
+function requireText(value, expected, file) {
+  if (typeof value !== "string" || !value.includes(expected)) {
+    throw new Error(`${file} must include "${expected}" in its Assembly request context.`);
+  }
+}
+
 for (const file of files) {
   const payload = JSON.parse(fs.readFileSync(file, "utf8"));
   if (!payload || typeof payload !== "object" || typeof payload.schema !== "string") {
@@ -27,6 +33,23 @@ for (const file of files) {
   }
   if (!expectedSchemas.has(payload.schema)) {
     throw new Error(`${file} uses an unexpected schema: ${payload.schema}`);
+  }
+  if (payload.schema === "tenra-registry.ledger-export.v1" && path.basename(file) === "ledger-export.json") {
+    const total = payload.rows.reduce((sum, row) => sum + row.amountMinor, 0);
+    if (total !== 24000) {
+      throw new Error(`${file} must keep the golden Ledger export total at 24000 minor units.`);
+    }
+  }
+  if (
+    payload.schema === "tenra-registry.assembly-document-request.v1" &&
+    path.basename(file) === "assembly-document-request.json"
+  ) {
+    requireText(payload.contextMarkdown, "Acme Builders", file);
+    requireText(payload.contextMarkdown, "$240.00 past due", file);
+    requireText(payload.contextMarkdown, "UNIT-014", file);
+    if (payload.desiredOutput !== "notice") {
+      throw new Error(`${file} must keep the golden Assembly output as a notice.`);
+    }
   }
 }
 
