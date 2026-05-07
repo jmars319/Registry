@@ -67,7 +67,7 @@ Local storage prefix: `tenra.ledger`
 
 Role: document and content assembly module
 
-Integration posture: keep unique; Registry, Scout, Derive, Sentinel, and Vicina should call Assembly for draft creation instead of embedding its editor.
+Integration posture: keep unique; other apps may call Assembly for draft creation, but every producer must still be useful without Assembly.
 
 Capabilities:
 

@@ -186,10 +186,61 @@ function buildModularIntegrationDoc() {
   const rows = catalog.apps.map((app) => [
     app.name,
     app.modularRole,
+    app.standaloneMode,
+    asArray(app.optionalSuiteDependencies).map((dependency) => appName(dependency.app)).join(", ") || "None",
     app.integrationPosture
   ]);
 
-  return `${docsGeneratedHeader("Modular App Integration")}The current suite should keep the apps as distinct products. The integration move is modular usage, not folding apps into one another.\n\n${mdTable(["App", "Modular role", "Posture"], rows)}\n\n## Current Readiness\n\n- Proxy and Guardrail are the clearest reusable service modules because multiple apps already route through them.\n- Assembly, Derive, Sentinel, Facet, Ledger, and Scout should remain unique apps with explicit handoff contracts.\n- Registry should become the suite control plane for catalog, audit, replay, fixture preview, compatibility, and release checks.\n- Vicina should remain a workflow orchestrator that routes to the specialized apps instead of absorbing them.\n`;
+  return `${docsGeneratedHeader("Modular App Integration")}The current suite should keep the apps as distinct products. The integration move is modular usage, not folding apps into one another.\n\n## Review Result\n\nThe concern that Assembly was becoming too foundational is directionally valid in the wording, but not in the actual dependency model. Assembly is a useful document module and accepts many inputs, but it is not required by any app. Proxy and Guardrail are the most reusable service modules by inbound contract count. This pass makes the boundary explicit: every app has a standalone mode and zero required suite dependencies.\n\n## Principles\n\n${catalog.modularityPrinciples.map((principle) => `- ${principle}`).join("\n")}\n\n${mdTable(["App", "Modular role", "Standalone mode", "Optional modules", "Posture"], rows)}\n\n## Current Readiness\n\n- Proxy and Guardrail are the clearest reusable service modules because multiple apps already route through them.\n- Assembly is a reusable drafting module, not a foundation layer. Producers must remain useful without it.\n- Registry should index, audit, replay, and verify module contracts without becoming a hidden runtime bus.\n- Vicina should remain a workflow orchestrator that routes to specialized apps through explicit optional handoffs.\n`;
+}
+
+function getModuleManifest(app) {
+  const emitted = catalog.contracts.filter((contract) => contract.ownerApp === app.id || contract.producerApp === app.id);
+  const accepted = catalog.contracts.filter((contract) => asArray(contract.consumerApps).includes(app.id));
+
+  return {
+    schema: "tenra-suite.module-manifest.v1",
+    appId: app.id,
+    name: app.name,
+    repo: app.repo,
+    primarySurface: app.primarySurface,
+    standaloneMode: app.standaloneMode,
+    requiredSuiteDependencies: app.requiredSuiteDependencies,
+    optionalSuiteDependencies: app.optionalSuiteDependencies,
+    moduleInterfaces: app.moduleInterfaces,
+    contracts: {
+      emits: emitted.map((contract) => contract.id),
+      accepts: accepted.map((contract) => contract.id)
+    },
+    rules: catalog.modularityPrinciples
+  };
+}
+
+function buildModuleMatrixDoc() {
+  const rows = catalog.apps.map((app) => {
+    const manifest = getModuleManifest(app);
+    return [
+      app.name,
+      manifest.requiredSuiteDependencies.length ? manifest.requiredSuiteDependencies.map((dependency) => appName(dependency.app)).join(", ") : "None",
+      asArray(app.optionalSuiteDependencies).map((dependency) => appName(dependency.app)).join(", ") || "None",
+      asArray(app.moduleInterfaces?.provides).join(", "),
+      asArray(app.moduleInterfaces?.consumes).join(", ") || "None"
+    ];
+  });
+
+  return `${docsGeneratedHeader("Module Matrix")}This is the first modularization layer. It records how each app stands alone, what it can provide to other apps, and which integrations are optional.\n\n${mdTable(["App", "Required modules", "Optional modules", "Provides", "Consumes"], rows)}\n\n## Enforcement\n\n- \`verify:contracts\` fails if any app lacks a standalone mode.\n- \`verify:contracts\` fails if a required suite dependency is introduced without changing the modularity policy.\n- Optional dependencies must reference registered apps.\n`;
+}
+
+function buildAppModuleManifestDoc(app) {
+  const manifest = getModuleManifest(app);
+  const optionalDependencies = manifest.optionalSuiteDependencies.length
+    ? manifest.optionalSuiteDependencies.map((dependency) => `- ${appName(dependency.app)}: ${dependency.purpose}`).join("\n")
+    : "- None";
+  const requiredDependencies = manifest.requiredSuiteDependencies.length
+    ? manifest.requiredSuiteDependencies.map((dependency) => `- ${appName(dependency.app)}: ${dependency.purpose}`).join("\n")
+    : "- None";
+
+  return `# Module Manifest\n\nGenerated from \`tenra Registry/contracts/handoff-catalog.json\` by \`tenra Registry/scripts/generate-suite-contract-docs.mjs\`.\n\n## Standalone Mode\n\n${manifest.standaloneMode}\n\n## Required Suite Dependencies\n\n${requiredDependencies}\n\n## Optional Suite Dependencies\n\n${optionalDependencies}\n\n## Provides\n\n${asArray(manifest.moduleInterfaces.provides).map((item) => `- ${item}`).join("\n")}\n\n## Consumes\n\n${asArray(manifest.moduleInterfaces.consumes).length ? asArray(manifest.moduleInterfaces.consumes).map((item) => `- ${item}`).join("\n") : "- None"}\n\n## Contracts\n\nEmits:\n\n${manifest.contracts.emits.length ? manifest.contracts.emits.map((id) => `- \`${id}\``).join("\n") : "- None"}\n\nAccepts:\n\n${manifest.contracts.accepts.length ? manifest.contracts.accepts.map((id) => `- \`${id}\``).join("\n") : "- None"}\n\n## Rules\n\n${manifest.rules.map((rule) => `- ${rule}`).join("\n")}\n`;
 }
 
 function buildFixtureDoc() {
@@ -218,7 +269,7 @@ function buildAppStandardDoc(app) {
         .join("\n")
     : "- No suite HTTP endpoint is documented for this app yet.";
 
-  return `# Suite Handoff Standard\n\nGenerated from \`tenra Registry/contracts/handoff-catalog.json\` by \`tenra Registry/scripts/generate-suite-contract-docs.mjs\`.\n\n## App Role\n\n${app.modularRole}\n\n${app.integrationPosture}\n\n## Accepted Inputs\n\n${accepted.length ? accepted.map((contract) => `- \`${contract.id}\` from ${appName(contract.producerApp)}`).join("\n") : "- No accepted suite contract is registered yet."}\n\n## Emitted Outputs\n\n${emitted.length ? emitted.map((contract) => `- \`${contract.id}\` to ${asArray(contract.consumerApps).map(appName).join(", ")}`).join("\n") : "- No emitted suite contract is registered yet."}\n\n## Standard Controls\n\n${relevantControls.length ? relevantControls.map((control) => `- ${control}`).join("\n") : catalog.standardUiControls.map((control) => `- ${control}`).join("\n")}\n\n## Status Vocabulary\n\n${catalog.statusVocabulary.map((entry) => `- \`${entry.status}\`: ${entry.meaning}`).join("\n")}\n\n## Local Storage\n\nPrefix: \`${app.localStoragePrefix}\`\n\n${asArray(app.localStorageKeys).map((key) => `- \`${key}\``).join("\n")}\n\n## Endpoints\n\n${endpoints}\n`;
+  return `# Suite Handoff Standard\n\nGenerated from \`tenra Registry/contracts/handoff-catalog.json\` by \`tenra Registry/scripts/generate-suite-contract-docs.mjs\`.\n\n## App Role\n\n${app.modularRole}\n\n${app.integrationPosture}\n\n## Standalone Mode\n\n${app.standaloneMode}\n\n## Accepted Inputs\n\n${accepted.length ? accepted.map((contract) => `- \`${contract.id}\` from ${appName(contract.producerApp)}`).join("\n") : "- No accepted suite contract is registered yet."}\n\n## Emitted Outputs\n\n${emitted.length ? emitted.map((contract) => `- \`${contract.id}\` to ${asArray(contract.consumerApps).map(appName).join(", ")}`).join("\n") : "- No emitted suite contract is registered yet."}\n\n## Standard Controls\n\n${relevantControls.length ? relevantControls.map((control) => `- ${control}`).join("\n") : catalog.standardUiControls.map((control) => `- ${control}`).join("\n")}\n\n## Status Vocabulary\n\n${catalog.statusVocabulary.map((entry) => `- \`${entry.status}\`: ${entry.meaning}`).join("\n")}\n\n## Local Storage\n\nPrefix: \`${app.localStoragePrefix}\`\n\n${asArray(app.localStorageKeys).map((key) => `- \`${key}\``).join("\n")}\n\n## Endpoints\n\n${endpoints}\n`;
 }
 
 function buildNegativeFixtures() {
@@ -311,6 +362,17 @@ writeOrCheck("contracts/local-storage-keys.json", formatJson({
     keys: app.localStorageKeys
   }))
 }));
+writeOrCheck("contracts/module-manifests/index.json", formatJson({
+  schema: "tenra-suite.module-manifest-index.v1",
+  updatedOn: catalog.updatedOn,
+  manifests: catalog.apps.map((app) => ({
+    appId: app.id,
+    path: `contracts/module-manifests/${app.id}.json`
+  }))
+}));
+for (const app of catalog.apps) {
+  writeOrCheck(`contracts/module-manifests/${app.id}.json`, formatJson(getModuleManifest(app)));
+}
 writeOrCheck("contracts/known-compatible-versions.json", formatJson({
   schema: "tenra-suite.known-compatible-versions.v1",
   milestoneTag: catalog.milestoneTag,
@@ -334,12 +396,14 @@ writeOrCheck("docs/APP_HANDOFF_CAPABILITIES.md", buildCapabilitiesDoc());
 writeOrCheck("docs/HANDOFF_UI_STANDARD.md", buildUiStandardDoc());
 writeOrCheck("docs/CONTRACT_CHANGELOG.md", buildContractChangelogDoc());
 writeOrCheck("docs/MODULAR_APP_INTEGRATION.md", buildModularIntegrationDoc());
+writeOrCheck("docs/MODULE_MATRIX.md", buildModuleMatrixDoc());
 writeOrCheck("docs/HANDOFF_FIXTURES.md", buildFixtureDoc());
 
 for (const app of catalog.apps) {
   writeSuiteFileOrCheck(`${app.repo}/docs/SUITE_HANDOFF_STANDARD.md`, buildAppStandardDoc(app));
+  writeSuiteFileOrCheck(`${app.repo}/docs/MODULE_MANIFEST.md`, buildAppModuleManifestDoc(app));
 }
 
 if (!checkMode) {
-  console.log(`Generated ${catalog.contracts.length} schemas, ${catalog.flows.length} flow docs, and ${catalog.apps.length} app standards.`);
+  console.log(`Generated ${catalog.contracts.length} schemas, ${catalog.flows.length} flow docs, and ${catalog.apps.length} module manifests.`);
 }

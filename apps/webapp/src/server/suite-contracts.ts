@@ -8,6 +8,19 @@ export type SuiteApp = {
   primarySurface: string;
   modularRole: string;
   integrationPosture: string;
+  standaloneMode: string;
+  requiredSuiteDependencies: Array<{
+    app: string;
+    purpose: string;
+  }>;
+  optionalSuiteDependencies: Array<{
+    app: string;
+    purpose: string;
+  }>;
+  moduleInterfaces: {
+    provides: string[];
+    consumes: string[];
+  };
   localStoragePrefix: string;
   localStorageKeys: string[];
   capabilities: string[];
@@ -52,6 +65,7 @@ export type SuiteCatalog = {
   schema: string;
   updatedOn: string;
   milestoneTag: string;
+  modularityPrinciples: string[];
   statusVocabulary: SuiteStatus[];
   standardUiControls: string[];
   apps: SuiteApp[];
@@ -113,6 +127,18 @@ export function getContractsForFlow(flow: SuiteFlow): SuiteContract[] {
     const contract = contractsById.get(contractId);
     return contract ? [contract] : [];
   });
+}
+
+export function getModuleRows(): Array<{
+  app: SuiteApp;
+  accepted: SuiteContract[];
+  emitted: SuiteContract[];
+}> {
+  const catalog = getSuiteCatalog();
+  return catalog.apps.map((app) => ({
+    app,
+    ...getContractsForApp(app.id)
+  }));
 }
 
 export function getFixturePreview(contract: SuiteContract): FixturePreview {

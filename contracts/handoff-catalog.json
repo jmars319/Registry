@@ -57,6 +57,13 @@
     "import history",
     "export history"
   ],
+  "modularityPrinciples": [
+    "Each app must remain complete and usable without another tenra app running.",
+    "Suite integrations are optional module links, not required runtime dependencies.",
+    "Shared functions should be exposed through explicit local APIs, exports, imports, or schemas.",
+    "No app may read another app's private filesystem, database, or localStorage state.",
+    "Registry can index and audit the module graph, but it must not become a hidden runtime bus."
+  ],
   "apps": [
     {
       "id": "registry",
@@ -65,6 +72,30 @@
       "primarySurface": "desktop-web",
       "modularRole": "suite control plane and rental operations app",
       "integrationPosture": "keep unique; expose Registry as the audit, replay, catalog, and reconciliation control surface.",
+      "standaloneMode": "Runs as a complete rental operations app with its own customers, assets, assignments, receivables, documents, imports, reports, and settings.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "ledger",
+          "purpose": "Optional financial reconciliation import/export."
+        },
+        {
+          "app": "assembly",
+          "purpose": "Optional document request handoff when richer drafting is useful."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "suite catalog",
+          "handoff audit",
+          "replay bundle",
+          "ledger export",
+          "assembly document request"
+        ],
+        "consumes": [
+          "handoff receipts"
+        ]
+      },
       "localStoragePrefix": "tenra.registry",
       "localStorageKeys": [
         "tenra.registry.handoffFilters.v1",
@@ -107,6 +138,24 @@
       "primarySurface": "desktop",
       "modularRole": "financial reconciliation module",
       "integrationPosture": "keep unique; Registry and other apps should use Ledger through explicit imports and reconciliation exports.",
+      "standaloneMode": "Runs as a complete ledger and reconciliation workspace with local transactions, imports, duplicate checks, drilldowns, and exports.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "registry",
+          "purpose": "Optional receivable export source and receipt target."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "ledger reconciliation",
+          "transaction drilldown",
+          "reconciliation export"
+        ],
+        "consumes": [
+          "registry ledger export"
+        ]
+      },
       "localStoragePrefix": "tenra.ledger",
       "localStorageKeys": [
         "tenra.ledger.registryReconciliation.v1",
@@ -132,7 +181,50 @@
       "repo": "tenra Assembly",
       "primarySurface": "desktop-web",
       "modularRole": "document and content assembly module",
-      "integrationPosture": "keep unique; Registry, Scout, Derive, Sentinel, and Vicina should call Assembly for draft creation instead of embedding its editor.",
+      "integrationPosture": "keep unique; other apps may call Assembly for draft creation, but every producer must still be useful without Assembly.",
+      "standaloneMode": "Runs as a complete document and project-note workspace with local drafting, content records, project notes, and proxy-notice export.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "registry",
+          "purpose": "Optional document request intake."
+        },
+        {
+          "app": "scout",
+          "purpose": "Optional opportunity-to-draft intake."
+        },
+        {
+          "app": "proxy",
+          "purpose": "Optional tone and format shaping for outbound notices."
+        },
+        {
+          "app": "derive",
+          "purpose": "Optional reasoning brief intake for content drafting."
+        },
+        {
+          "app": "sentinel",
+          "purpose": "Optional risk brief intake for content context."
+        },
+        {
+          "app": "vicina",
+          "purpose": "Optional workflow signal intake."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "document drafting",
+          "content assembly",
+          "project-note inbox",
+          "proxy notice handoff"
+        ],
+        "consumes": [
+          "registry document request",
+          "scout opportunity",
+          "derive reasoning brief",
+          "sentinel risk brief",
+          "vicina workflow signal"
+        ]
+      },
       "localStoragePrefix": "tenra.assembly",
       "localStorageKeys": [
         "tenra.assembly.registryInbox.v1",
@@ -170,6 +262,33 @@
       "primarySurface": "desktop-web",
       "modularRole": "lead discovery and opportunity source",
       "integrationPosture": "keep unique; other apps should consume Scout opportunities, while Scout can use Proxy and Guardrail as reusable services.",
+      "standaloneMode": "Runs as a complete lead discovery and opportunity review app with local lead inbox, candidate details, outreach context, and run controls.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "assembly",
+          "purpose": "Optional opportunity-to-draft handoff."
+        },
+        {
+          "app": "proxy",
+          "purpose": "Optional outreach shaping."
+        },
+        {
+          "app": "guardrail",
+          "purpose": "Optional external action review."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "opportunity handoff",
+          "candidate evidence",
+          "outbound destination presets"
+        ],
+        "consumes": [
+          "proxy shaping result",
+          "guardrail decision"
+        ]
+      },
       "localStoragePrefix": "tenra.scout",
       "localStorageKeys": [
         "tenra.scout.handoffEndpoints.v1",
@@ -206,6 +325,42 @@
       "primarySurface": "desktop-web",
       "modularRole": "shared shaping and tone service",
       "integrationPosture": "keep unique as a reusable module; many apps should call Proxy rather than duplicating shaping logic.",
+      "standaloneMode": "Runs as a complete shaping workspace with profiles, presets, constraints, health history, and shaping previews.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "assembly",
+          "purpose": "Optional notice shaping source."
+        },
+        {
+          "app": "scout",
+          "purpose": "Optional outreach shaping source."
+        },
+        {
+          "app": "align",
+          "purpose": "Optional review reply shaping source."
+        },
+        {
+          "app": "derive",
+          "purpose": "Optional reasoning brief shaping source."
+        },
+        {
+          "app": "vicina",
+          "purpose": "Optional workflow shaping source."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "external output shaping",
+          "preset shaping",
+          "profile constraints",
+          "suite endpoint health"
+        ],
+        "consumes": [
+          "shape requests",
+          "preset requests"
+        ]
+      },
       "localStoragePrefix": "tenra.proxy",
       "localStorageKeys": [
         "tenra.proxy.shapeHistory.v1",
@@ -238,6 +393,46 @@
       "primarySurface": "desktop-web",
       "modularRole": "shared review and decision service",
       "integrationPosture": "keep unique as a reusable module; source apps should request decisions instead of embedding review policy.",
+      "standaloneMode": "Runs as a complete review queue and decision workspace with local requests, templates, decisions, callback retries, and exports.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "scout",
+          "purpose": "Optional outreach/action review source."
+        },
+        {
+          "app": "partition",
+          "purpose": "Optional unsafe disk-action review source."
+        },
+        {
+          "app": "align",
+          "purpose": "Optional publish-route review source."
+        },
+        {
+          "app": "derive",
+          "purpose": "Optional reasoning review source."
+        },
+        {
+          "app": "sentinel",
+          "purpose": "Optional risk review source."
+        },
+        {
+          "app": "vicina",
+          "purpose": "Optional workflow review source."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "external action review",
+          "decision callback",
+          "decision export",
+          "failed callback retry"
+        ],
+        "consumes": [
+          "review requests",
+          "callback endpoints"
+        ]
+      },
       "localStoragePrefix": "tenra.guardrail",
       "localStorageKeys": [
         "tenra.guardrail.reviewQueue.v1",
@@ -270,6 +465,28 @@
       "primarySurface": "desktop",
       "modularRole": "disk-layout simulation and lab validation app",
       "integrationPosture": "keep unique; Guardrail can review unsafe changes and Proxy can shape operator-facing explanations.",
+      "standaloneMode": "Runs as a complete partition planning and lab validation app with local simulation, refusal checks, safety review, and result queues.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "guardrail",
+          "purpose": "Optional external review for blocked or unsafe lab results."
+        },
+        {
+          "app": "proxy",
+          "purpose": "Optional operator-facing explanation shaping."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "lab validation request",
+          "lab validation result",
+          "blocked result queue"
+        ],
+        "consumes": [
+          "guardrail decision"
+        ]
+      },
       "localStoragePrefix": "tenra.partition",
       "localStorageKeys": [
         "tenra.partition.labValidationHistory.v1",
@@ -290,6 +507,29 @@
       "primarySurface": "web",
       "modularRole": "review reply and route alignment app",
       "integrationPosture": "keep unique; use Proxy for reply shaping and Guardrail for publish review.",
+      "standaloneMode": "Runs as a complete review routing and reply alignment app with local snapshots, route drafts, conflict history, and reply choices.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "proxy",
+          "purpose": "Optional review reply shaping."
+        },
+        {
+          "app": "guardrail",
+          "purpose": "Optional publish approval review."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "alignment snapshot",
+          "review reply route",
+          "route timeline"
+        ],
+        "consumes": [
+          "proxy shaped reply",
+          "guardrail decision"
+        ]
+      },
       "localStoragePrefix": "tenra.align",
       "localStorageKeys": [
         "tenra.align.routeDrafts.v1",
@@ -311,6 +551,30 @@
       "primarySurface": "desktop",
       "modularRole": "research orientation and packet source",
       "integrationPosture": "keep unique; Derive, Assembly, and Sentinel should consume orientation packets as modular inputs.",
+      "standaloneMode": "Runs as a complete research orientation app with local queries, responses, orientation packets, endpoint checks, and retry queues.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "derive",
+          "purpose": "Optional reasoning expansion of orientation packets."
+        },
+        {
+          "app": "assembly",
+          "purpose": "Optional content drafting from orientation packets."
+        },
+        {
+          "app": "sentinel",
+          "purpose": "Optional risk lookup from orientation packets."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "orientation packet",
+          "endpoint health",
+          "send retry queue"
+        ],
+        "consumes": []
+      },
       "localStoragePrefix": "tenra.facet",
       "localStorageKeys": [
         "tenra.facet.orientationHistory.v1",
@@ -332,6 +596,41 @@
       "primarySurface": "desktop",
       "modularRole": "reasoning brief and comparison module",
       "integrationPosture": "keep unique; consume Facet/Sentinel inputs and emit reasoning briefs to Assembly, Guardrail, Sentinel, and Proxy.",
+      "standaloneMode": "Runs as a complete reasoning workspace with local questions, answers, brief history, import previews, and comparison state.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "facet",
+          "purpose": "Optional orientation packet source."
+        },
+        {
+          "app": "sentinel",
+          "purpose": "Optional risk brief source and consumer."
+        },
+        {
+          "app": "assembly",
+          "purpose": "Optional content drafting consumer."
+        },
+        {
+          "app": "guardrail",
+          "purpose": "Optional reasoning review consumer."
+        },
+        {
+          "app": "proxy",
+          "purpose": "Optional shaped summary consumer."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "reasoning brief",
+          "brief history",
+          "import preview"
+        ],
+        "consumes": [
+          "orientation packet",
+          "risk brief"
+        ]
+      },
       "localStoragePrefix": "tenra.derive",
       "localStorageKeys": [
         "tenra.derive.reasoningBriefHistory.v1",
@@ -352,6 +651,38 @@
       "primarySurface": "desktop",
       "modularRole": "risk lookup and brief source",
       "integrationPosture": "keep unique; emit risk briefs to Derive, Guardrail, and Assembly rather than duplicating lookup workflows.",
+      "standaloneMode": "Runs as a complete risk lookup and brief review app with local lookup state, risk briefs, outbound previews, and import error handling.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "derive",
+          "purpose": "Optional reasoning consumer and source."
+        },
+        {
+          "app": "guardrail",
+          "purpose": "Optional risk review consumer."
+        },
+        {
+          "app": "assembly",
+          "purpose": "Optional risk-aware content drafting consumer."
+        },
+        {
+          "app": "facet",
+          "purpose": "Optional orientation packet source."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "risk brief",
+          "derive preview",
+          "guardrail preview",
+          "import error state"
+        ],
+        "consumes": [
+          "orientation packet",
+          "reasoning brief"
+        ]
+      },
       "localStoragePrefix": "tenra.sentinel",
       "localStorageKeys": [
         "tenra.sentinel.riskBriefHistory.v1",
@@ -373,6 +704,37 @@
       "primarySurface": "desktop-web",
       "modularRole": "workflow handoff orchestrator",
       "integrationPosture": "keep unique; route workflow signals to Assembly, Guardrail, Sentinel, and Proxy through explicit handoffs.",
+      "standaloneMode": "Runs as a complete workflow orchestration app with local workflow state, handoff timelines, endpoint health, and operator notes.",
+      "requiredSuiteDependencies": [],
+      "optionalSuiteDependencies": [
+        {
+          "app": "assembly",
+          "purpose": "Optional workflow-to-draft handoff."
+        },
+        {
+          "app": "guardrail",
+          "purpose": "Optional workflow review handoff."
+        },
+        {
+          "app": "sentinel",
+          "purpose": "Optional risk lookup handoff."
+        },
+        {
+          "app": "proxy",
+          "purpose": "Optional workflow output shaping."
+        }
+      ],
+      "moduleInterfaces": {
+        "provides": [
+          "workflow handoff",
+          "destination timeline",
+          "endpoint health"
+        ],
+        "consumes": [
+          "module health",
+          "handoff acknowledgements"
+        ]
+      },
       "localStoragePrefix": "tenra.vicina",
       "localStorageKeys": [
         "tenra.vicina.workflowHandoffHistory.v1",

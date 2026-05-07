@@ -16,6 +16,9 @@ export default function SuitePage() {
           for the non-vaexcore tenra apps.
         </p>
         <div className="actions-row">
+          <Link className="button-secondary button-link no-print" href="/suite/modules">
+            Module Matrix
+          </Link>
           <Link className="button-secondary button-link no-print" href="/suite/fixtures">
             Fixture Browser
           </Link>
@@ -58,7 +61,25 @@ export default function SuitePage() {
               <span className="pill">{app.primarySurface}</span>
               <h3>{app.name}</h3>
               <p>{app.modularRole}</p>
+              <p className="table-subcopy">{app.standaloneMode}</p>
             </Link>
+          ))}
+        </div>
+      </article>
+
+      <article className="panel-card">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Modularity</p>
+            <h2>Standalone-first rules</h2>
+          </div>
+          <span className="pill">required deps: 0</span>
+        </div>
+        <div className="suite-card-grid suite-card-grid--compact">
+          {catalog.modularityPrinciples.map((principle) => (
+            <div className="suite-card" key={principle}>
+              <p>{principle}</p>
+            </div>
           ))}
         </div>
       </article>

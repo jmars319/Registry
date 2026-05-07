@@ -8,6 +8,10 @@ suite control plane and rental operations app
 
 keep unique; expose Registry as the audit, replay, catalog, and reconciliation control surface.
 
+## Standalone Mode
+
+Runs as a complete rental operations app with its own customers, assets, assignments, receivables, documents, imports, reports, and settings.
+
 ## Accepted Inputs
 
 - No accepted suite contract is registered yet.

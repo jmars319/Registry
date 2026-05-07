@@ -53,12 +53,68 @@ export default async function SuiteAppPage({ params }: Params) {
             <span>Local storage prefix</span>
             <strong>{app.localStoragePrefix}</strong>
           </div>
+          <div>
+            <span>Required suite dependencies</span>
+            <strong>{app.requiredSuiteDependencies.length}</strong>
+          </div>
+          <div>
+            <span>Optional suite dependencies</span>
+            <strong>{app.optionalSuiteDependencies.length}</strong>
+          </div>
         </div>
+        <p className="table-subcopy">{app.standaloneMode}</p>
         <ul className="inline-issues suite-list">
           {app.capabilities.map((capability) => (
             <li key={capability}>{capability}</li>
           ))}
         </ul>
+      </article>
+
+      <article className="panel-card">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Module manifest</p>
+            <h2>Standalone and optional links</h2>
+          </div>
+          <span className="pill">standalone-first</span>
+        </div>
+        <div className="form-grid two">
+          <div className="suite-subpanel">
+            <h3>Provides</h3>
+            <ul className="suite-list">
+              {app.moduleInterfaces.provides.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="suite-subpanel">
+            <h3>Consumes</h3>
+            {app.moduleInterfaces.consumes.length ? (
+              <ul className="suite-list">
+                {app.moduleInterfaces.consumes.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="table-subcopy">No module input is required for standalone use.</p>
+            )}
+          </div>
+        </div>
+        <div className="suite-subpanel">
+          <h3>Optional dependencies</h3>
+          {app.optionalSuiteDependencies.length ? (
+            <ul className="suite-list">
+              {app.optionalSuiteDependencies.map((dependency) => (
+                <li key={dependency.app}>
+                  <strong>{dependency.app}</strong>
+                  <span>{dependency.purpose}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="table-subcopy">No optional suite dependency is registered.</p>
+          )}
+        </div>
       </article>
 
       <article className="panel-card">

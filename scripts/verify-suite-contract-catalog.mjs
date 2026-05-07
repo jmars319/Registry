@@ -92,6 +92,7 @@ function verifyCatalogShape() {
   assert(asArray(catalog.apps).length >= 12, "Catalog must include all non-vaexcore apps.");
   assert(asArray(catalog.contracts).length >= 16, "Catalog must include every current suite handoff contract.");
   assert(asArray(catalog.flows).length >= 7, "Catalog must include current cross-app flows.");
+  assert(asArray(catalog.modularityPrinciples).length >= 5, "Catalog must define suite modularity principles.");
 
   const appIds = new Set(catalog.apps.map((app) => app.id));
   assert(appIds.size === catalog.apps.length, "App ids must be unique.");
@@ -104,11 +105,29 @@ function verifyCatalogShape() {
 
   for (const app of catalog.apps) {
     assert(app.repo && fs.existsSync(relativeSuitePath(`${app.repo}/.git`)), `${app.name} must point at a local git repo.`);
+    assert(typeof app.standaloneMode === "string" && app.standaloneMode.length > 40, `${app.name} must define standaloneMode.`);
+    assert(Array.isArray(app.requiredSuiteDependencies), `${app.name} must declare requiredSuiteDependencies.`);
+    assert(
+      app.requiredSuiteDependencies.length === 0,
+      `${app.name} cannot require another suite app while the modularity policy is standalone-first.`
+    );
+    assert(Array.isArray(app.optionalSuiteDependencies), `${app.name} must declare optionalSuiteDependencies.`);
+    for (const dependency of app.optionalSuiteDependencies) {
+      assert(appIds.has(dependency.app), `${app.name} optional dependency ${dependency.app} must be a registered app.`);
+      assert(dependency.app !== app.id, `${app.name} cannot list itself as an optional dependency.`);
+      assert(typeof dependency.purpose === "string" && dependency.purpose.length > 10, `${app.name} optional dependency ${dependency.app} needs a purpose.`);
+    }
+    assert(Array.isArray(app.moduleInterfaces?.provides), `${app.name} must declare provided module interfaces.`);
+    assert(Array.isArray(app.moduleInterfaces?.consumes), `${app.name} must declare consumed module interfaces.`);
     assert(app.localStoragePrefix?.startsWith("tenra."), `${app.name} localStorage prefix must start with tenra.`);
     for (const key of asArray(app.localStorageKeys)) {
       assert(key.startsWith(app.localStoragePrefix), `${app.name} localStorage key ${key} must use ${app.localStoragePrefix}.`);
       assert(key.endsWith(".v1"), `${app.name} localStorage key ${key} must be versioned.`);
     }
+    assert(
+      fs.existsSync(path.join(repoRoot, "contracts/module-manifests", `${app.id}.json`)),
+      `${app.name} module manifest is missing.`
+    );
   }
 
   for (const flow of catalog.flows) {
@@ -176,5 +195,5 @@ verifyContracts();
 verifyNegativeFixtures();
 
 console.log(
-  `Verified ${catalog.contracts.length} suite contracts, ${catalog.flows.length} flows, and ${catalog.negativeCases.length} negative fixtures.`
+  `Verified ${catalog.contracts.length} suite contracts, ${catalog.flows.length} flows, ${catalog.apps.length} module manifests, and ${catalog.negativeCases.length} negative fixtures.`
 );
