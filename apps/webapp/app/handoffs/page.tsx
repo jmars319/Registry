@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listHandoffAudits } from "../../src/server/registry-data";
+import { getSuiteCatalog } from "../../src/server/suite-contracts";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,9 @@ export default async function HandoffsPage({
   const targetApp = getParam(params.targetApp);
   const deliveryStatus = getParam(params.deliveryStatus);
   const exportId = getParam(params.exportId);
-  const audits = await listHandoffAudits({ targetApp, deliveryStatus, exportId });
+  const schema = getParam(params.schema);
+  const audits = await listHandoffAudits({ targetApp, deliveryStatus, exportId, schema });
+  const catalog = getSuiteCatalog();
 
   return (
     <section className="stack">
@@ -45,7 +48,7 @@ export default async function HandoffsPage({
           <span className="pill">{audits.length} tracked</span>
         </div>
 
-        <form className="form-grid three" method="get">
+        <form className="form-grid two" method="get">
           <label className="field-stack">
             <span>Target</span>
             <select className="form-input" defaultValue={targetApp ?? ""} name="targetApp">
@@ -62,6 +65,19 @@ export default async function HandoffsPage({
               <option value="sent">Sent</option>
               <option value="received">Received</option>
               <option value="failed">Failed</option>
+            </select>
+          </label>
+          <label className="field-stack">
+            <span>Schema</span>
+            <select className="form-input" defaultValue={schema ?? ""} name="schema">
+              <option value="">All schemas</option>
+              {catalog.contracts
+                .filter((contract) => contract.schemaFieldRequired !== false)
+                .map((contract) => (
+                  <option key={contract.id} value={contract.id}>
+                    {contract.id}
+                  </option>
+                ))}
             </select>
           </label>
           <label className="field-stack">

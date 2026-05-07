@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const suiteRoot = path.resolve(repoRoot, "..");
+const catalog = JSON.parse(fs.readFileSync(path.join(repoRoot, "contracts/handoff-catalog.json"), "utf8"));
 
 const repos = {
   registry: "tenra Registry",
@@ -23,6 +24,7 @@ const repos = {
 };
 
 const verifierScripts = [
+  { repo: "registry", command: "pnpm", args: ["run", "verify:contracts"] },
   { repo: "registry", command: "pnpm", args: ["run", "verify:handoffs"] },
   { repo: "registry", command: "pnpm", args: ["run", "verify:handoffs:negative"] },
   { repo: "ledger", command: "pnpm", args: ["run", "verify:handoffs"] },
@@ -39,78 +41,20 @@ const verifierScripts = [
   { repo: "vicina", command: "pnpm", args: ["run", "verify:handoffs"] }
 ];
 
-const flowMatrix = [
-  {
-    producer: "Registry",
-    contract: "tenra-registry.ledger-export.v1",
-    consumers: ["Ledger"],
-    fixture: "tenra Registry/fixtures/handoffs/ledger-export.json",
-    status: "active"
-  },
-  {
-    producer: "Registry",
-    contract: "tenra-registry.assembly-document-request.v1",
-    consumers: ["Assembly"],
-    fixture: "tenra Registry/fixtures/handoffs/assembly-document-request.json",
-    status: "active"
-  },
-  {
-    producer: "Scout",
-    contract: "tenra-scout.opportunity-handoff.v1",
-    consumers: ["Assembly", "Proxy"],
-    fixture: "tenra Scout/fixtures/handoffs/direct-delivery-smoke.json",
-    status: "active"
-  },
-  {
-    producer: "Assembly",
-    contract: "tenra-assembly.proxy-notice-handoff.v1",
-    consumers: ["Proxy"],
-    fixture: "tenra Assembly/fixtures/handoffs/proxy-notice-handoff.json",
-    status: "active"
-  },
-  {
-    producer: "Align",
-    contract: "tenra-align.review-reply-route.v1",
-    consumers: ["Guardrail", "Proxy"],
-    fixture: "tenra Align/fixtures/handoffs/review-reply-route.json",
-    status: "active"
-  },
-  {
-    producer: "Partition",
-    contract: "tenra-partition.lab-validation-result.v1",
-    consumers: ["Guardrail"],
-    fixture: "tenra Partition/fixtures/handoffs/lab-validation-result.json",
-    status: "active"
-  },
-  {
-    producer: "Facet",
-    contract: "tenra-facet.orientation-packet.v1",
-    consumers: ["Derive", "Assembly", "Sentinel"],
-    fixture: "tenra Facet/fixtures/handoffs/orientation-packet.json",
-    status: "active"
-  },
-  {
-    producer: "Derive",
-    contract: "tenra-derive.reasoning-brief.v1",
-    consumers: ["Assembly", "Guardrail", "Sentinel", "Proxy"],
-    fixture: "tenra Derive/fixtures/handoffs/reasoning-brief.json",
-    status: "active"
-  },
-  {
-    producer: "Sentinel",
-    contract: "tenra-sentinel.risk-brief.v1",
-    consumers: ["Derive", "Guardrail", "Assembly"],
-    fixture: "tenra Sentinel/fixtures/handoffs/risk-brief.json",
-    status: "active"
-  },
-  {
-    producer: "Vicina",
-    contract: "tenra-vicina.workflow-handoff.v1",
-    consumers: ["Assembly", "Guardrail", "Sentinel", "Proxy"],
-    fixture: "Vicina by tenra/fixtures/handoffs/workflow-handoff.json",
-    status: "active"
-  }
-];
+const contractsById = new Map(catalog.contracts.map((contract) => [contract.id, contract]));
+const appsById = new Map(catalog.apps.map((app) => [app.id, app]));
+const flowMatrix = catalog.flows.flatMap((flow) =>
+  flow.contracts.map((contractId) => {
+    const contract = contractsById.get(contractId);
+    return {
+      producer: appsById.get(flow.producer)?.name ?? flow.producer,
+      contract: contractId,
+      consumers: flow.consumers.map((consumer) => appsById.get(consumer)?.name ?? consumer),
+      fixture: contract?.fixture ?? flow.fixtures[0],
+      status: "current"
+    };
+  })
+);
 
 function readJson(relativePath) {
   const fullPath = path.join(suiteRoot, relativePath);
@@ -162,10 +106,14 @@ function printFlowMatrix() {
 }
 
 function runCompatibilityFixtureCheck() {
-  for (const row of flowMatrix) {
-    const payload = readJson(row.fixture);
-    assert(payload.schema === row.contract, `${row.fixture} schema must remain ${row.contract}`);
-    assert(row.contract.endsWith(".v1"), `${row.contract} must stay v1-compatible until a v2 migration exists`);
+  for (const contract of catalog.contracts) {
+    const payload = readJson(contract.fixture);
+    if (contract.schemaFieldRequired === false) {
+      assert(!payload.schema || payload.schema === contract.id, `${contract.fixture} optional schema must remain ${contract.id}`);
+    } else {
+      assert(payload.schema === contract.id, `${contract.fixture} schema must remain ${contract.id}`);
+    }
+    assert(contract.id.endsWith(".v1"), `${contract.id} must stay v1-compatible until a v2 migration exists`);
   }
 }
 

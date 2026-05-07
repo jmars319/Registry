@@ -944,6 +944,7 @@ export async function listHandoffAudits(filters: {
   targetApp?: string | undefined;
   deliveryStatus?: string | undefined;
   exportId?: string | undefined;
+  schema?: string | undefined;
 } = {}): Promise<HandoffAuditSummary[]> {
   const organization = await getDefaultOrganization();
   const records = await db.handoffAudit.findMany({
@@ -951,6 +952,7 @@ export async function listHandoffAudits(filters: {
       organizationId: organization.id,
       ...(filters.targetApp ? { targetApp: filters.targetApp } : {}),
       ...(filters.deliveryStatus ? { lastDeliveryStatus: filters.deliveryStatus } : {}),
+      ...(filters.schema ? { schema: filters.schema } : {}),
       ...(filters.exportId ? { exportId: { contains: filters.exportId } } : {})
     },
     orderBy: {
