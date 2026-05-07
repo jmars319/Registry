@@ -30,7 +30,11 @@
     "verify:mobile": "pnpm --filter @registry/mobileapp verify",
     "verify:handoffs": "node ./scripts/validate-handoffs.mjs",
     "verify:replay": "node ./scripts/verify-handoff-replay.mjs",
+    "verify:handoffs:negative": "node ./scripts/verify-negative-handoff-fixtures.mjs",
     "suite:smoke": "node ./scripts/suite-smoke.mjs",
+    "suite:demo:registry": "node ./scripts/demo-registry-ledger-assembly.mjs",
+    "suite:demo:reasoning": "node ./scripts/demo-facet-derive-sentinel.mjs",
+    "suite:demo:guardrail": "node ./scripts/demo-guardrail-callbacks.mjs",
     "verify:all": "pnpm verify:web && pnpm verify:desktop && pnpm verify:mobile",
     "doctor": "node ./scripts/doctor.mjs"
   },

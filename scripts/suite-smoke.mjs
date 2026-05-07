@@ -24,6 +24,7 @@ const repos = {
 
 const verifierScripts = [
   { repo: "registry", command: "pnpm", args: ["run", "verify:handoffs"] },
+  { repo: "registry", command: "pnpm", args: ["run", "verify:handoffs:negative"] },
   { repo: "ledger", command: "pnpm", args: ["run", "verify:handoffs"] },
   { repo: "assembly", command: "pnpm", args: ["run", "verify:handoffs"] },
   { repo: "proxy", command: "pnpm", args: ["run", "verify:handoffs"] },
@@ -36,6 +37,79 @@ const verifierScripts = [
   { repo: "sentinel", command: "pnpm", args: ["run", "verify:handoffs"] },
   { repo: "sentinel", command: "pnpm", args: ["run", "verify:derive-roundtrip"] },
   { repo: "vicina", command: "pnpm", args: ["run", "verify:handoffs"] }
+];
+
+const flowMatrix = [
+  {
+    producer: "Registry",
+    contract: "tenra-registry.ledger-export.v1",
+    consumers: ["Ledger"],
+    fixture: "tenra Registry/fixtures/handoffs/ledger-export.json",
+    status: "active"
+  },
+  {
+    producer: "Registry",
+    contract: "tenra-registry.assembly-document-request.v1",
+    consumers: ["Assembly"],
+    fixture: "tenra Registry/fixtures/handoffs/assembly-document-request.json",
+    status: "active"
+  },
+  {
+    producer: "Scout",
+    contract: "tenra-scout.opportunity-handoff.v1",
+    consumers: ["Assembly", "Proxy"],
+    fixture: "tenra Scout/fixtures/handoffs/direct-delivery-smoke.json",
+    status: "active"
+  },
+  {
+    producer: "Assembly",
+    contract: "tenra-assembly.proxy-notice-handoff.v1",
+    consumers: ["Proxy"],
+    fixture: "tenra Assembly/fixtures/handoffs/proxy-notice-handoff.json",
+    status: "active"
+  },
+  {
+    producer: "Align",
+    contract: "tenra-align.review-reply-route.v1",
+    consumers: ["Guardrail", "Proxy"],
+    fixture: "tenra Align/fixtures/handoffs/review-reply-route.json",
+    status: "active"
+  },
+  {
+    producer: "Partition",
+    contract: "tenra-partition.lab-validation-result.v1",
+    consumers: ["Guardrail"],
+    fixture: "tenra Partition/fixtures/handoffs/lab-validation-result.json",
+    status: "active"
+  },
+  {
+    producer: "Facet",
+    contract: "tenra-facet.orientation-packet.v1",
+    consumers: ["Derive", "Assembly", "Sentinel"],
+    fixture: "tenra Facet/fixtures/handoffs/orientation-packet.json",
+    status: "active"
+  },
+  {
+    producer: "Derive",
+    contract: "tenra-derive.reasoning-brief.v1",
+    consumers: ["Assembly", "Guardrail", "Sentinel", "Proxy"],
+    fixture: "tenra Derive/fixtures/handoffs/reasoning-brief.json",
+    status: "active"
+  },
+  {
+    producer: "Sentinel",
+    contract: "tenra-sentinel.risk-brief.v1",
+    consumers: ["Derive", "Guardrail", "Assembly"],
+    fixture: "tenra Sentinel/fixtures/handoffs/risk-brief.json",
+    status: "active"
+  },
+  {
+    producer: "Vicina",
+    contract: "tenra-vicina.workflow-handoff.v1",
+    consumers: ["Assembly", "Guardrail", "Sentinel", "Proxy"],
+    fixture: "Vicina by tenra/fixtures/handoffs/workflow-handoff.json",
+    status: "active"
+  }
 ];
 
 function readJson(relativePath) {
@@ -69,6 +143,29 @@ function runLocalVerifiers() {
     if (result.status !== 0) {
       throw new Error(`${repos[verifier.repo]} verifier failed.`);
     }
+  }
+}
+
+function emitCiError(title, message) {
+  if (process.env.GITHUB_ACTIONS === "true") {
+    console.error(`::error title=${title.replace(/:/gu, "-")}::${message.replace(/\n/gu, " ")}`);
+  }
+}
+
+function printFlowMatrix() {
+  console.log("FLOW MATRIX");
+  for (const row of flowMatrix) {
+    console.log(
+      `FLOW ${row.producer} -> ${row.consumers.join(", ")} | ${row.contract} | ${row.fixture} | ${row.status}`
+    );
+  }
+}
+
+function runCompatibilityFixtureCheck() {
+  for (const row of flowMatrix) {
+    const payload = readJson(row.fixture);
+    assert(payload.schema === row.contract, `${row.fixture} schema must remain ${row.contract}`);
+    assert(row.contract.endsWith(".v1"), `${row.contract} must stay v1-compatible until a v2 migration exists`);
   }
 }
 
@@ -170,10 +267,18 @@ const checks = [
 ];
 
 runLocalVerifiers();
+printFlowMatrix();
+runCompatibilityFixtureCheck();
 
 for (const check of checks) {
-  check.run();
-  console.log(`OK ${check.name}`);
+  try {
+    check.run();
+    console.log(`OK ${check.name}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    emitCiError(check.name, message);
+    throw error;
+  }
 }
 
 console.log(`suite-smoke: ${checks.length} flow checks passed`);

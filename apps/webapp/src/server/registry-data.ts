@@ -922,6 +922,24 @@ export async function getHandoffAuditByExportId(exportId: string): Promise<Hando
   return record ? serializeHandoffAudit(record) : null;
 }
 
+export async function listHandoffReplayAudits(exportId: string): Promise<HandoffAuditSummary[]> {
+  const organization = await getDefaultOrganization();
+  const records = await db.handoffAudit.findMany({
+    where: {
+      organizationId: organization.id,
+      exportId: {
+        startsWith: `${exportId}:replay:`
+      }
+    },
+    orderBy: {
+      lastExportedAt: "desc"
+    },
+    take: 25
+  });
+
+  return records.map(serializeHandoffAudit);
+}
+
 export async function listHandoffAudits(filters: {
   targetApp?: string | undefined;
   deliveryStatus?: string | undefined;

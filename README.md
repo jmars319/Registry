@@ -76,3 +76,12 @@ pnpm doctor
 - The desktop app is a local launcher, not a standalone distributable yet. Distribution should later bundle or provision the server/database path instead of depending on this repo checkout.
 
 See [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) and [docs/REPO_MAP.md](docs/REPO_MAP.md) for the working details.
+
+## Suite Integration Docs
+
+- [Suite Handoff Catalog](docs/SUITE_HANDOFF_CATALOG.md)
+- [Local Dev Ports](docs/LOCAL_DEV_PORTS.md)
+- [Suite Operator Checklist](docs/SUITE_OPERATOR_CHECKLIST.md)
+- [Handoff Fixture Conventions](docs/HANDOFF_FIXTURES.md)
+- [Handoff Versioning](docs/HANDOFF_VERSIONING.md)
+- [Integration Milestone Notes](docs/RELEASE_NOTES_INTEGRATION_MILESTONE.md)

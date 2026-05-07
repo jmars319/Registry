@@ -11,6 +11,7 @@ import { notFound } from "next/navigation";
 import {
   getDefaultOrganization,
   getHandoffAuditByExportId,
+  listHandoffReplayAudits,
   listAssets,
   listAssignments,
   listCustomers,
@@ -146,6 +147,17 @@ export default async function HandoffDetailPage({ params }: Params) {
   }
 
   const replay = await buildReplayPreview(exportId);
+  const replayAttempts = await listHandoffReplayAudits(exportId);
+  const endpointPresets =
+    audit.targetApp === "ledger"
+      ? [
+          { label: "Ledger desktop import", value: "http://localhost:4174/api/handoffs/registry-ledger" },
+          { label: "Registry receipt", value: "http://localhost:3000/api/handoffs/received" }
+        ]
+      : [
+          { label: "Assembly Registry document", value: "http://localhost:3001/api/handoffs/registry-document" },
+          { label: "Assembly local fallback", value: "http://localhost:3000/api/handoffs/registry-document" }
+        ];
 
   return (
     <section className="stack">
@@ -222,6 +234,7 @@ export default async function HandoffDetailPage({ params }: Params) {
             <span>{audit.targetApp === "ledger" ? "Ledger import endpoint" : "Assembly import endpoint"}</span>
             <input
               className="form-input"
+              list="registry-replay-endpoint-presets"
               name="endpoint"
               placeholder={
                 audit.targetApp === "ledger"
@@ -229,6 +242,11 @@ export default async function HandoffDetailPage({ params }: Params) {
                   : "http://localhost:3000/api/handoffs/registry-document"
               }
             />
+            <datalist id="registry-replay-endpoint-presets">
+              {endpointPresets.map((preset) => (
+                <option key={preset.label} label={preset.label} value={preset.value} />
+              ))}
+            </datalist>
           </label>
           <label className="field-stack">
             <span>Delivery note</span>
@@ -244,6 +262,44 @@ export default async function HandoffDetailPage({ params }: Params) {
             </button>
           </div>
         </form>
+      </article>
+
+      <article className="panel-card">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Replay history</p>
+            <h2>Attempts</h2>
+          </div>
+          <span className="pill">{replayAttempts.length} attempt(s)</span>
+        </div>
+        {replayAttempts.length ? (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Attempt</th>
+                <th>Status</th>
+                <th>Message</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              {replayAttempts.map((attempt) => (
+                <tr key={attempt.id}>
+                  <td>
+                    <code>{attempt.exportId}</code>
+                  </td>
+                  <td>
+                    <span className="pill">{attempt.lastDeliveryStatus}</span>
+                  </td>
+                  <td>{attempt.lastDeliveryMessage ?? "Replay payload regenerated."}</td>
+                  <td>{formatDateTime(attempt.lastDeliveryUpdatedAt ?? attempt.lastExportedAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="table-subcopy">Replay attempts will appear here after JSON fallback or direct POST delivery.</p>
+        )}
       </article>
 
       <article className="panel-card">

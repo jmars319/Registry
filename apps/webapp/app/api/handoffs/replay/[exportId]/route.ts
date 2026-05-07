@@ -119,14 +119,17 @@ async function buildReplayPayload(exportId: string): Promise<ReplayPayloadResult
 
 async function recordReplay(result: ReplayPayloadResult) {
   const replayPayload = result.payload as { exportId: string; schema: string };
-  await recordHandoffAudit({
+  return recordHandoffAudit({
     organizationId: result.organizationId,
-    exportId: replayPayload.exportId,
+    exportId: `${result.audit.exportId}:replay:${Date.now()}`,
     schema: replayPayload.schema,
     targetApp: result.targetApp,
     subjectId: result.subjectId,
     rowCount: result.rowCount,
-    payloadSummary: result.payloadSummary as never
+    payloadSummary: {
+      ...result.payloadSummary,
+      replayedPayloadExportId: replayPayload.exportId
+    } as never
   });
 }
 
@@ -169,10 +172,15 @@ export async function POST(request: Request, { params }: Params) {
       return NextResponse.json({ ok: false, error: result.error }, { status: result.status });
     }
 
-    await recordReplay(result);
+    const replayAudit = await recordReplay(result);
 
     const endpoint = body.endpoint?.trim();
     if (!endpoint) {
+      await updateHandoffDeliveryStatus({
+        exportId: replayAudit.exportId,
+        status: "downloaded",
+        message: "Replay returned JSON fallback without direct delivery."
+      });
       return NextResponse.json({
         ok: true,
         delivered: false,
@@ -195,6 +203,11 @@ export async function POST(request: Request, { params }: Params) {
         status: "failed",
         message: `Replay delivery to ${result.targetApp} failed: ${message.slice(0, 240)}`
       });
+      await updateHandoffDeliveryStatus({
+        exportId: replayAudit.exportId,
+        status: "failed",
+        message: `Direct replay POST failed: ${message.slice(0, 240)}`
+      });
       return NextResponse.json(
         {
           ok: true,
@@ -210,6 +223,11 @@ export async function POST(request: Request, { params }: Params) {
 
     await updateHandoffDeliveryStatus({
       exportId: result.audit.exportId,
+      status: "sent",
+      message: body.message ?? `Replay delivered to ${result.targetApp}.`
+    });
+    await updateHandoffDeliveryStatus({
+      exportId: replayAudit.exportId,
       status: "sent",
       message: body.message ?? `Replay delivered to ${result.targetApp}.`
     });

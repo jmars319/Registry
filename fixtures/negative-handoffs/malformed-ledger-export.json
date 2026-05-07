@@ -1,0 +1,7 @@
+{
+  "schema": "tenra-registry.ledger-export.v1",
+  "exportId": "registry-negative-missing-rows",
+  "exportedAt": "2026-05-06T17:30:00.000Z",
+  "organizationId": "org-negative",
+  "sourceApp": "registry"
+}
