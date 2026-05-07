@@ -1,87 +1,79 @@
 # tenra Registry
 
-tenra Registry is a stable operating desk for portable storage-container rentals. It tracks organizations, customers, container units, rental site logistics, receivable entries, document templates, and practical reports.
+tenra Registry is the suite coordination layer for tenra handoffs, app capabilities, contracts, and local integration visibility. It gives the ecosystem a controlled place to describe what each app can do, how handoffs are shaped, and how suite-level flows should be verified.
 
-This repository is now past the pure scaffold stage. Registry is desktop-first: the macOS app is the user-facing operating desk. It launches the real local Next/Postgres workflow, while the web app remains the shared runtime/admin surface and mobile remains a light placeholder.
+Registry is infrastructure for the tenra ecosystem. It is not a generic app store or marketing catalog.
 
-## What Works Now
+## Operational Purpose
 
-- single-organization operational workflow through the desktop-launched local app
-- seeded default organization
-- customer list, create, detail, rental history, and account-balance flow
-- container unit list, create, and detail flow with size, type, condition, home yard, and current location fields
-- rental list, create, and detail flow with customer site, delivery, pickup, placement, cadence, and rate fields
-- rental lifecycle actions for activate, complete, and cancel
-- active-rental protection at the application layer and database layer
-- automatic unit release back to available when active rentals are completed or cancelled
-- receivable ledger entries for charges, deposits, payments, credits, adjustments, and refunds
-- hardened rent-run screen for billing-day controls, non-monthly cadence calculation, prorated month starts, selected-rental exclusions, posted-history review, and duplicate-charge skipping
-- customer balance summaries, past-due visibility, and receivables reporting
-- customizable document template library for rental agreements, delivery/pickup tickets, condition reports, receipts, statements, notices, and letters
-- generated document records with review-before-save editing, PDF download, print/email-draft actions, and status timestamps
-- account statement generation from posted charges, payments, credits, and balances
-- blank CSV import layouts plus dry-run validation, import execution, import batch audit records, and rollback support for customers, container units, active rentals, and opening balances
-- print-oriented CSS baseline for document/report output
-- macOS Applications launcher that starts the production Next app locally and opens the Postgres-backed dashboard in a desktop window
+- Define and validate cross-app handoff contracts.
+- Track suite capabilities and module boundaries.
+- Provide operator-facing visibility into integration flows.
+- Keep contract changes, fixtures, and compatibility notes in one repo.
 
-The target flow for this pass is real:
+## Design Posture
 
-```bash
-available container -> create active rental -> post charges/payments -> complete or cancel rental -> unit available again
+- Explicit contracts over implicit integration behavior.
+- Local verification before broader suite automation.
+- Shared domain packages for handoff vocabulary.
+- Desktop/web/mobile shells exist to support suite visibility, not to blur app ownership.
+- Contract fixtures and negative tests are part of the system.
+
+## Architecture
+
+```text
+apps/
+  webapp/       Next.js registry and integration surface
+  desktopapp/   Electron desktop launcher for the local web app
+  mobileapp/    Expo scaffold for later suite visibility
+
+packages/
+  domain/       Handoff, module, and capability models
+  api-contracts/ Shared request and response contracts
+  validation/   Runtime schemas
+  auth/         Local/session placeholders
+  ui/           Shared interface primitives
+  config/       Product identity and environment helpers
+
+docs/           Contract changelog, handoff standards, fixtures, and suite docs
 ```
 
-## Monorepo Layout
+## Current State
 
-- `apps/desktopapp`: primary Electron desktop launcher for the production local Next/Postgres workflow
-- `apps/webapp`: secondary Next.js full-stack runtime with Prisma, server actions, and the first operational slice
-- `apps/mobileapp`: third-surface placeholder Expo + React Native shell
-- `packages/*`: shared domain, contracts, validation, auth, UI tokens, and config
-- `scripts`: root environment and health scripts
-- `docs`: repo documentation
-- `archive`: reserved for legacy imports and migration material
+- The repo contains the most complete tenra suite handoff documentation.
+- Contract generation and replay verification scripts are present.
+- The web app is the primary product surface.
+- The desktop app wraps the registry surface for local operator access.
+- Mobile remains a scaffold for future suite review.
 
-## Common Commands
+## Deployment Posture
+
+Registry is currently a local/development coordination system for the tenra ecosystem. Hosted deployment should follow contract hardening, auth decisions, and clear ownership of suite metadata.
+
+## Working Locally
 
 ```bash
-cp .env.example .env
-pnpm bootstrap
-pnpm db:prepare
-pnpm --filter @registry/webapp db:migrate
-pnpm --filter @registry/webapp db:seed
-pnpm dev:web
-pnpm install:desktop
-pnpm launch:desktop
-pnpm verify:web
-pnpm doctor
+pnpm run bootstrap
+pnpm run dev:web
+pnpm run dev:desktop
+pnpm run contracts:generate
+pnpm run suite:smoke
+pnpm run verify:all
+pnpm run doctor
 ```
 
-## Current Technical Baseline
+Use the contract and handoff docs when making any cross-app integration change.
 
-- Node `22+`
-- pnpm `10+`
-- existing local Postgres instance via `DATABASE_URL`, or the default `postgresql:///registry?schema=public` after `pnpm db:prepare`
-- Prisma 7 with the Postgres driver adapter
-- local desktop launcher loads repo-root `.env` / `.env.local`, defaults to `postgresql:///registry?schema=public` when `DATABASE_URL` is not set, and depends on this repo path, pnpm, the built Next app, and the same local Postgres database
-- strict TypeScript across the monorepo
+## Direction
 
-## Notes
+- Keep Registry as the canonical suite integration reference.
+- Tighten handoff versioning and fixtures.
+- Make capability visibility useful without turning Registry into a broad product marketplace.
+- Continue separating infrastructure truth from individual app marketing.
 
-- The UI is intentionally single-organization for this pass, but the schema remains organization-aware.
-- Billing now uses a receivable ledger. Positive entries increase customer balance; payments and credits reduce it.
-- Unit lifecycle automation only moves units between `available` and `assigned`. `maintenance` and `archived` remain manual states.
-- Documents now create generated records, track print/email actions, and generate simple downloadable PDFs. Direct email sending and immutable delivery history are still future work.
-- Imports now support dry-run validation, execution, batch audit records, and rollback for newly imported records. A real source export should still be reviewed before the field mapping is considered final.
-- Auth provider integration and a separate backend service are intentionally deferred.
-- `pnpm install:desktop` rebuilds and installs the local launcher without opening it. Use `pnpm launch:desktop` when you want to open the installed app.
-- The desktop app is a local launcher, not a standalone distributable yet. Distribution should later bundle or provision the server/database path instead of depending on this repo checkout.
+## Related Documentation
 
-See [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) and [docs/REPO_MAP.md](docs/REPO_MAP.md) for the working details.
-
-## Suite Integration Docs
-
+- [Suite Handoff Standard](docs/SUITE_HANDOFF_STANDARD.md)
 - [Suite Handoff Catalog](docs/SUITE_HANDOFF_CATALOG.md)
-- [Local Dev Ports](docs/LOCAL_DEV_PORTS.md)
-- [Suite Operator Checklist](docs/SUITE_OPERATOR_CHECKLIST.md)
-- [Handoff Fixture Conventions](docs/HANDOFF_FIXTURES.md)
-- [Handoff Versioning](docs/HANDOFF_VERSIONING.md)
-- [Integration Milestone Notes](docs/RELEASE_NOTES_INTEGRATION_MILESTONE.md)
+- [Contract Changelog](docs/CONTRACT_CHANGELOG.md)
+- [Repo Map](docs/REPO_MAP.md)
