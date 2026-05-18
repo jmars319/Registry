@@ -54,10 +54,10 @@ function statusDocument(title: string, body: string, details = "") {
     <title>${escapeHtml(title)}</title>
     <style>
       :root {
-        color-scheme: light;
+        color-scheme: dark;
         font-family: Inter, "Avenir Next", Arial, sans-serif;
-        background: #f5f3ed;
-        color: #25221c;
+        background: #0D0D0F;
+        color: #f2f2f5;
       }
       body {
         margin: 0;
@@ -67,15 +67,15 @@ function statusDocument(title: string, body: string, details = "") {
       }
       main {
         width: min(760px, calc(100vw - 48px));
-        border: 1px solid #d6d0c2;
+        border: 1px solid rgba(242, 242, 245, 0.14);
         border-radius: 8px;
-        background: #fffdf8;
+        background: #1E1E22;
         padding: 28px;
-        box-shadow: 0 18px 44px rgba(28, 25, 20, 0.08);
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
       }
       p {
         line-height: 1.55;
-        color: #5c5549;
+        color: #A0A0A0;
       }
       pre {
         max-height: 280px;

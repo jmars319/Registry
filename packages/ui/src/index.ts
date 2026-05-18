@@ -1,15 +1,15 @@
 export const registryTheme = {
   colors: {
-    canvas: "#f4f0e8",
-    panel: "#fffaf2",
-    panelStrong: "#f0e6d8",
-    border: "#d7c9b3",
-    text: "#2f2418",
-    muted: "#78695a",
-    accent: "#2f6a4e",
-    accentSoft: "#dcebdd",
+    canvas: "#0D0D0F",
+    panel: "#1E1E22",
+    panelStrong: "#2C2C30",
+    border: "rgba(242, 242, 245, 0.14)",
+    text: "#f2f2f5",
+    muted: "#A0A0A0",
+    accent: "#09A6D6",
+    accentSoft: "rgba(9, 166, 214, 0.14)",
     warning: "#a14d2a",
-    warningSoft: "#f7e2d7"
+    warningSoft: "rgba(161, 77, 42, 0.18)"
   },
   radii: {
     small: 10,
@@ -25,7 +25,7 @@ export const registryTheme = {
     xxl: 48
   },
   shadows: {
-    panel: "0 18px 40px rgba(75, 50, 22, 0.08)"
+    panel: "0 18px 40px rgba(0, 0, 0, 0.28)"
   }
 } as const;
 
